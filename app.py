@@ -20,13 +20,12 @@ except Exception as e:
 
 @app.route("/")
 def index():
-    return "Flask server for stress detection is running."
+    return "Server for stress detection is running."
 
 @app.route("/predict", methods=["POST"])
 def predict_stress():
     if clf is None or scaler is None:
         return jsonify({"error": "SVM model not loaded on server."}), 500
-
     if "image" not in request.files:
         return jsonify({"error": "No file 'image' in the request"}), 400
 
@@ -53,7 +52,6 @@ def predict_stress():
             return jsonify({"error": "No face embedding found."}), 400
 
         embedding = np.array(emb_list[0]['embedding']).reshape(1, -1)
-
         embedding_scaled = scaler.transform(embedding)
         predicted_label = clf.predict(embedding_scaled)[0]
         return jsonify({"stress_level": predicted_label}), 200
