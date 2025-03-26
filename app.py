@@ -8,8 +8,6 @@ from deepface import DeepFace
 import joblib
 
 app = Flask(__name__)
-
-
 base_dir = os.path.dirname(__file__)
 model_path = os.path.join(base_dir, "stress_svm_model.pkl")
 
@@ -26,7 +24,6 @@ def index():
 
 @app.route("/predict", methods=["POST"])
 def predict_stress():
-
     if clf is None or scaler is None:
         return jsonify({"error": "SVM model not loaded on server."}), 500
 
@@ -36,6 +33,7 @@ def predict_stress():
     file = request.files["image"]
     if file.filename == "":
         return jsonify({"error": "Empty filename"}), 400
+
     file_bytes = file.read()
     if not file_bytes:
         return jsonify({"error": "File is empty"}), 400
@@ -57,13 +55,13 @@ def predict_stress():
         embedding = np.array(emb_list[0]['embedding']).reshape(1, -1)
 
         embedding_scaled = scaler.transform(embedding)
-
         predicted_label = clf.predict(embedding_scaled)[0]
-
         return jsonify({"stress_level": predicted_label}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
