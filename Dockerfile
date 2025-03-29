@@ -1,5 +1,4 @@
 FROM python:3.10-slim
-
 RUN apt-get update && apt-get install -y \
     wget \
     libgl1-mesa-glx \
@@ -13,17 +12,18 @@ RUN apt-get update && apt-get install -y \
     libxinerama1 \
  && rm -rf /var/lib/apt/lists/*
 
+
+RUN pip install gdown
+
+
+RUN mkdir -p /app/weights && \
+    gdown --id 1AoZQy43hElpJYWSckqOBeHPpfMHwIieF -O /app/weights/vgg_face_weights.h5
+
 WORKDIR /app
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
-
-RUN mkdir -p /app/weights && \
-    wget -O /app/weights/vgg_face_weights.h5 https://github.com/rcmalli/keras-vggface/releases/download/v2.0/vgg_face_weights.h5
-
 COPY . /app/
 
-# Дозволяємо виконання скрипту
-RUN chmod +x /app/start.sh
-
 EXPOSE 8000
-CMD ["/app/start.sh"]
+
+CMD exec gunicorn --bind 0.0.0.0:${PORT:-8000} main:app --timeout 120 --preload
