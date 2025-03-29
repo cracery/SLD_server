@@ -17,7 +17,7 @@ RUN pip install gdown
 
 
 RUN mkdir -p /app/weights && \
-    gdown --id 1AoZQy43hElpJYWSckqOBeHPpfMHwIieF -O /app/weights/vgg_face_weights.h5
+    gdown --id 1om2AMju2ywu6QABY5xaM10KMr-4d8hhh -O /app/weights/vgg_face_weights.h5
 
 WORKDIR /app
 COPY requirements.txt /app/
