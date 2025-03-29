@@ -16,6 +16,9 @@ WORKDIR /app
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN mkdir -p /app/weights && \
+    wget -O /app/weights/vgg_face_weights.h5 https://github.com/rcmalli/keras-vggface/releases/download/v2.0/vgg_face_weights.h5
+
 COPY . /app/
 
 # Дозволяємо виконання скрипту
