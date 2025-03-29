@@ -1,0 +1,12 @@
+[phases.setup]
+nixPkgs = [
+  "python310",
+  "mesa",
+  "libglvnd",
+  "xorg.libXext",
+  "xorg.libXrender",
+  "xorg.libXfixes",
+  "xorg.libXcursor",
+  "xorg.libXi",
+  "xorg.libSM"
+]
