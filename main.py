@@ -9,20 +9,28 @@ from deepface import DeepFace
 from deepface.basemodels import VGGFace
 import joblib
 import tensorflow as tf
-os.environ["DEEPFACE_HOME"] = "/tmp/.deepface"
+
+# Краще DEEPFACE_HOME встановити на /tmp (без додаткового вкладення .deepface)
+os.environ["DEEPFACE_HOME"] = "/tmp"
+os.makedirs("/tmp/.deepface/weights", exist_ok=True)
 
 app = Flask(__name__)
 base_dir = os.path.dirname(__file__)
 model_path = os.path.join(base_dir, "stress_svm_model.pkl")
+
 try:
     clf, scaler = joblib.load(model_path)
     print("SVM model loaded successfully.")
 except Exception as e:
     print(f"Error loading model: {str(e)}")
     clf, scaler = None, None
-    
+
 print("Loading VGGFace model...")
-vgg_model = VGGFace.loadModel()
+
+# Завантаження моделі з локального шляху
+weights_path = os.path.join(base_dir, "weights", "vgg_face_weights.h5")
+vgg_model = VGGFace.loadModel(weights_path)
+
 print("VGGFace loaded.")
 
 @app.route("/")
