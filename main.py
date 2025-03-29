@@ -8,36 +8,38 @@ from deepface.basemodels import VGGFace
 import joblib
 import tensorflow as tf
 
-# Уникаємо нестабільної кеш-папки DeepFace
-os.environ["DEEPFACE_HOME"] = "/tmp"
+# Встановлюємо стабільний шлях для кешу DeepFace
+os.environ["DEEPFACE_HOME"] = "/tmp/.deepface"
+os.makedirs("/tmp/.deepface/weights", exist_ok=True)
 
 app = Flask(__name__)
 base_dir = os.path.dirname(__file__)
 model_path = os.path.join(base_dir, "stress_svm_model.pkl")
 
-# Завантажуємо SVM-модель
+# Завантажуємо SVM модель
 try:
     clf, scaler = joblib.load(model_path)
-    print("SVM model loaded successfully.")
+    print("✅ SVM model loaded successfully.")
 except Exception as e:
-    print(f"Error loading model: {str(e)}")
+    print(f"❌ Error loading model: {str(e)}")
     clf, scaler = None, None
 
-# Завантажуємо архітектуру + ваги VGGFace
-print("Loading VGGFace model...")
+# Завантажуємо VGGFace модель з локальними вагами
+print("📦 Loading VGGFace model from local weights...")
 weights_path = os.path.join(base_dir, "weights", "vgg_face_weights.h5")
 vgg_model = VGGFace.loadModel()
 vgg_model.load_weights(weights_path)
-print("VGGFace loaded.")
+print("✅ VGGFace model loaded.")
 
 @app.route("/")
 def index():
-    return "Server for stress detection is running."
+    return "✅ Server for stress detection is running."
 
 @app.route("/predict", methods=["POST"])
 def predict_stress():
     if clf is None or scaler is None:
         return jsonify({"error": "SVM model not loaded on server."}), 500
+
     if "image" not in request.files:
         return jsonify({"error": "No file 'image' in the request"}), 400
 
@@ -58,21 +60,22 @@ def predict_stress():
         emb_list = DeepFace.represent(
             img_path=color_frame,
             model_name="VGG-Face",
-            model=vgg_model,  # ✅ важливо!
+            model=vgg_model,
             enforce_detection=False
         )
+
         if not emb_list:
             return jsonify({"error": "No face embedding found."}), 400
 
         embedding = np.array(emb_list[0]['embedding']).reshape(1, -1)
         embedding_scaled = scaler.transform(embedding)
         predicted_label = clf.predict(embedding_scaled)[0]
-        return jsonify({"stress_level": predicted_label}), 200
+        return jsonify({"stress_level": int(predicted_label)}), 200
 
     except Exception as e:
         import traceback
-        traceback.print_exc()  # ✅ покажемо лог в Railway
-        return jsonify({"error": str(e)}), 500
+        traceback.print_exc()
+        return jsonify({"error": f"Exception: {str(e)}"}), 500
 
 
 if __name__ == "__main__":
