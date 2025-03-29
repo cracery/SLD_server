@@ -1,22 +1,29 @@
+# main.py
+
 import os
 import sys
-import io
 import numpy as np
 import cv2
 from flask import Flask, request, jsonify
 from deepface import DeepFace
+from deepface.basemodels import VGGFace
 import joblib
+import tensorflow as tf
+os.environ["DEEPFACE_HOME"] = "/tmp/.deepface"
 
 app = Flask(__name__)
 base_dir = os.path.dirname(__file__)
 model_path = os.path.join(base_dir, "stress_svm_model.pkl")
-
 try:
     clf, scaler = joblib.load(model_path)
     print("SVM model loaded successfully.")
 except Exception as e:
     print(f"Error loading model: {str(e)}")
     clf, scaler = None, None
+    
+print("Loading VGGFace model...")
+vgg_model = VGGFace.loadModel()
+print("VGGFace loaded.")
 
 @app.route("/")
 def index():
@@ -46,6 +53,7 @@ def predict_stress():
         emb_list = DeepFace.represent(
             img_path=color_frame,
             model_name="VGG-Face",
+            model=vgg_model,
             enforce_detection=False
         )
         if not emb_list:
