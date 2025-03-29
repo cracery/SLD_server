@@ -27,9 +27,9 @@ except Exception as e:
 
 print("Loading VGGFace model...")
 
-# Завантаження моделі з локального шляху
 weights_path = os.path.join(base_dir, "weights", "vgg_face_weights.h5")
-vgg_model = VGGFace.loadModel(weights_path)
+vgg_model = VGGFace.loadModel()
+vgg_model.load_weights(weights_path)
 
 print("VGGFace loaded.")
 
