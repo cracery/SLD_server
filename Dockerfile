@@ -22,4 +22,4 @@ COPY . /app/
 
 EXPOSE 8000
 
-CMD ["gunicorn", "main:app", "--bind", "0.0.0.0:$PORT", "--timeout", "120", "--preload"]
+CMD exec gunicorn --bind 0.0.0.0:${PORT:-8000} frequencia_monitoria.wsgi:application
